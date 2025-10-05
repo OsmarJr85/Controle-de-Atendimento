@@ -431,8 +431,11 @@
                 const day = new Date(dateKey);
                 
                 if (!isSunday(day) && !isHoliday(day)) {
-                    card.addEventListener('click', () => {
-                        toggleDayExpansion(dateKey);
+                    card.addEventListener('click', (e) => {
+                        // Verificar se o clique foi no header (não nos inputs)
+                        if (!e.target.closest('.expanded-content')) {
+                            toggleDayExpansion(dateKey);
+                        }
                     });
                 }
             });
@@ -451,6 +454,7 @@
             // Mudança nos inputs
             document.querySelectorAll('.time-input, .desc-input').forEach(input => {
                 input.addEventListener('input', (e) => {
+                    e.stopPropagation();
                     const card = e.target.closest('.day-card');
                     const dateKey = card.dataset.date;
                     const slot = e.target.closest('.time-slot').dataset.slot;
@@ -460,6 +464,16 @@
                     } else {
                         updateDescription(dateKey, slot, e.target.value.substring(0, 20));
                     }
+                });
+                
+                // Prevenir propagação de cliques nos inputs
+                input.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+                
+                // Prevenir propagação de foco nos inputs
+                input.addEventListener('focus', (e) => {
+                    e.stopPropagation();
                 });
             });
         }
