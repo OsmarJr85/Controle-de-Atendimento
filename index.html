@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Atendimento</title>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.4.1/docx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -32,7 +35,7 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             padding: 24px;
             margin-bottom: 32px;
-            width: 300px;
+            width: 450px;
         }
 
         .header-title {
@@ -57,23 +60,86 @@
             margin-bottom: 8px;
         }
 
-        .legend {
-            margin-top: 8px;
-            font-size: 12px;
-            color: #64748b;
-            text-align: center;
+        /* Cadastro de paciente */
+        .registration-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 450px;
+            margin-bottom: 16px;
+            overflow: hidden;
         }
 
-        .legend span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin: 0 4px;
+        .registration-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .registration-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .registration-content {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        .registration-content.show {
+            display: block;
+        }
+
+        .registration-field {
+            margin-bottom: 12px;
+        }
+
+        .registration-label {
+            display: block;
+            font-size: 12px;
+            color: #4b5563;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .registration-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .registration-input:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 10px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .save-btn:hover {
+            background: #4f46e5;
         }
 
         .day-card {
-            width: 300px;
+            width: 450px;
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             overflow: hidden;
@@ -143,7 +209,7 @@
         }
 
         .complete-btn {
-            flex-shrink: 0;
+            flex-shrink-0;
             margin-top: 6px;
             background: none;
             border: none;
@@ -161,7 +227,7 @@
             flex: 1;
         }
 
-        .time-input, .desc-input {
+        .time-input, .desc-input, .duration-input {
             padding: 6px 8px;
             font-size: 14px;
             border: 1px solid #cbd5e1;
@@ -170,24 +236,24 @@
         }
 
         .time-input {
-            width: 96px;
+            width: 80px;
+        }
+
+        .duration-input {
+            width: 60px;
+            background: #f1f5f9;
+            color: #4b5563;
+            font-weight: 600;
         }
 
         .desc-input {
-            width: 128px;
+            width: 120px;
         }
 
-        .time-input:focus, .desc-input:focus {
+        .time-input:focus, .desc-input:focus, .duration-input:focus {
             outline: none;
             border-color: #818cf8;
             box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
-        }
-
-        .no-attendance {
-            padding: 16px;
-            text-align: center;
-            color: #64748b;
-            font-size: 14px;
         }
 
         /* Cores específicas */
@@ -217,6 +283,268 @@
         .weekend .day-number {
             color: #991b1b;
         }
+
+        /* Cadastros */
+        .month-registrations-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 450px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .month-registrations-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .month-registrations-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .month-registrations-content {
+            padding: 16px;
+            border-top: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        .month-registrations-content.show {
+            display: block;
+        }
+
+        .registration-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .registration-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .registration-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+
+        .registration-names {
+            flex: 1;
+        }
+
+        .registration-professional {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 14px;
+        }
+
+        .registration-patient {
+            color: #4b5563;
+            font-size: 13px;
+        }
+
+        .registration-responsible {
+            color: #64748b;
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .no-registrations {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            padding: 16px;
+        }
+
+        /* Resumo de atendimento */
+        .summary-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 450px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .summary-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .summary-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .summary-content {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        .summary-content.show {
+            display: block;
+        }
+
+        .patient-selector {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            background: white;
+        }
+
+        .hourly-rate-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            background: white;
+        }
+
+        .summary-stats {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .summary-stat {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #1e293b;
+        }
+
+        .summary-stat:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .no-patients {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            padding: 16px;
+        }
+
+        /* Gerar lista de frequência */
+        .frequency-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 450px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .frequency-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .frequency-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .frequency-content {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        .frequency-content.show {
+            display: block;
+        }
+
+        .frequency-patient-selector {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            background: white;
+        }
+
+        .generate-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .generate-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .docx-btn {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .docx-btn:hover {
+            background: #2563eb;
+        }
+
+        .pdf-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .pdf-btn:hover {
+            background: #dc2626;
+        }
     </style>
 </head>
 <body>
@@ -233,15 +561,84 @@
                 <h1>Controle de Atendimento</h1>
             </div>
             <p class="current-date" id="currentDate">Carregando...</p>
-            <div class="legend">
-                <span style="background:#fecaca"></span> Fim de semana
-                <span style="background:#fed7aa"></span> Feriado
-                <span style="background:#bbf7d0"></span> Domingo
+        </div>
+
+        <!-- Cadastro de Paciente -->
+        <div class="registration-card" id="registrationCard">
+            <div class="registration-header" id="registrationHeader">
+                <div class="registration-title">Cadastro de paciente</div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="registrationChevron">
+                    <polyline points="6 15 12 9 18 15"></polyline>
+                </svg>
+            </div>
+            <div class="registration-content" id="registrationContent">
+                <div class="registration-field">
+                    <label class="registration-label">Nome do(a) Profissional</label>
+                    <input type="text" id="professionalName" class="registration-input" placeholder="Digite o nome do profissional">
+                </div>
+                <div class="registration-field">
+                    <label class="registration-label">Nome do(a) Paciente</label>
+                    <input type="text" id="patientName" class="registration-input" placeholder="Digite o nome do paciente">
+                </div>
+                <div class="registration-field">
+                    <label class="registration-label">Nome do(a) Responsável</label>
+                    <input type="text" id="responsibleName" class="registration-input" placeholder="Digite o nome do responsável">
+                </div>
+                <button class="save-btn" id="saveRegistrationBtn">Salvar Cadastro</button>
             </div>
         </div>
 
         <!-- Days will be inserted here by JavaScript -->
         <div id="daysContainer" class="days-container"></div>
+
+        <!-- Resumo de atendimento do mês -->
+        <div class="summary-card" id="summaryCard">
+            <div class="summary-header" id="summaryHeader">
+                <div class="summary-title">Resumo de atendimento do mês</div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="summaryChevron">
+                    <polyline points="6 15 12 9 18 15"></polyline>
+                </svg>
+            </div>
+            <div class="summary-content" id="summaryContent">
+                <select class="patient-selector" id="patientSelector">
+                    <option value="">Selecione um paciente</option>
+                </select>
+                <input type="number" class="hourly-rate-input" id="hourlyRateInput" placeholder="Valor da hora (R$)" min="0" step="0.01">
+                <div id="summaryStats"></div>
+            </div>
+        </div>
+
+        <!-- Cadastros -->
+        <div class="month-registrations-card" id="monthRegistrationsCard">
+            <div class="month-registrations-header" id="monthRegistrationsHeader">
+                <div class="month-registrations-title">Cadastros</div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="monthRegistrationsChevron">
+                    <polyline points="6 15 12 9 18 15"></polyline>
+                </svg>
+            </div>
+            <div class="month-registrations-content" id="monthRegistrationsContent">
+                <div id="registrationsList"></div>
+            </div>
+        </div>
+
+        <!-- Gerar lista de frequência -->
+        <div class="frequency-card" id="frequencyCard">
+            <div class="frequency-header" id="frequencyHeader">
+                <div class="frequency-title">Gerar lista de frequência</div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="frequencyChevron">
+                    <polyline points="6 15 12 9 18 15"></polyline>
+                </svg>
+            </div>
+            <div class="frequency-content" id="frequencyContent">
+                <select class="frequency-patient-selector" id="frequencyPatientSelector">
+                    <option value="">Selecione um paciente</option>
+                </select>
+                <div class="generate-buttons">
+                    <button class="generate-btn docx-btn" id="generateDocxBtn">Gerar DOCX</button>
+                    <button class="generate-btn pdf-btn" id="generatePdfBtn">Gerar PDF</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -254,20 +651,15 @@
 
         let currentDate = new Date();
         let expandedDays = new Set();
+        let isRegistrationExpanded = false;
+        let isMonthRegistrationsExpanded = false;
+        let isSummaryExpanded = false;
+        let isFrequencyExpanded = false;
 
         // Funções de verificação
         function isHoliday(date) {
             const dateString = date.toISOString().split('T')[0];
             return nationalHolidays.includes(dateString);
-        }
-
-        function isWeekend(date) {
-            const day = date.getDay();
-            return day === 0 || day === 6;
-        }
-
-        function isSunday(date) {
-            return date.getDay() === 0;
         }
 
         function getDaysInMonth(date) {
@@ -291,25 +683,52 @@
             return `${type}_${date.getFullYear()}_${date.getMonth() + 1}`;
         }
 
+        // Função para calcular duração entre dois horários
+        function calculateDuration(startTime, endTime) {
+            if (!startTime || !endTime) return '';
+            
+            const start = startTime.split(':').map(Number);
+            const end = endTime.split(':').map(Number);
+            
+            const startMinutes = start[0] * 60 + start[1];
+            const endMinutes = end[0] * 60 + end[1];
+            
+            if (endMinutes <= startMinutes) return ''; // Horário inválido
+            
+            const durationMinutes = endMinutes - startMinutes;
+            const hours = Math.floor(durationMinutes / 60);
+            const minutes = durationMinutes % 60;
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
         // Carregar dados do localStorage
         function loadStoredData() {
             const attendanceKey = getStorageKey(currentDate, 'attendance_data');
             const completedKey = getStorageKey(currentDate, 'completed_slots');
             const descriptionKey = getStorageKey(currentDate, 'description_data');
+            const registrationsKey = getStorageKey(currentDate, 'registrations_list');
             
             try {
                 const attendanceData = localStorage.getItem(attendanceKey);
                 const completedData = localStorage.getItem(completedKey);
                 const descriptionData = localStorage.getItem(descriptionKey);
+                const registrationsData = localStorage.getItem(registrationsKey);
                 
                 return {
                     attendance: attendanceData ? JSON.parse(attendanceData) : {},
                     completed: completedData ? JSON.parse(completedData) : {},
-                    description: descriptionData ? JSON.parse(descriptionData) : {}
+                    description: descriptionData ? JSON.parse(descriptionData) : {},
+                    registrations: registrationsData ? JSON.parse(registrationsData) : []
                 };
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
-                return { attendance: {}, completed: {}, description: {} };
+                return { 
+                    attendance: {}, 
+                    completed: {}, 
+                    description: {},
+                    registrations: []
+                };
             }
         }
 
@@ -333,76 +752,80 @@
         // Criar HTML para um dia
         function createDayHTML(day, storedData) {
             const dateKey = formatDateKey(day);
-            const isWeekendDay = isWeekend(day);
             const isHolidayDay = isHoliday(day);
-            const isSundayDay = isSunday(day);
+            const isSundayDay = day.getDay() === 0;
             const isExpanded = expandedDays.has(dateKey);
             
-            let bgColorClass = '';
+            let bgColor = 'bg-white';
+            let borderColor = 'border-gray-200';
+            let textColor = 'text-gray-800';
+            
             if (isSundayDay) {
-                bgColorClass = 'sunday';
+                bgColor = 'bg-green-50';
+                borderColor = 'border-green-200';
+                textColor = 'text-green-800';
             } else if (isHolidayDay) {
-                bgColorClass = 'holiday';
-            } else if (isWeekendDay) {
-                bgColorClass = 'weekend';
+                bgColor = 'bg-orange-50';
+                borderColor = 'border-orange-200';
+                textColor = 'text-orange-800';
+            } else if (day.getDay() === 6) { // Sábado
+                bgColor = 'bg-red-50';
+                borderColor = 'border-red-200';
+                textColor = 'text-red-800';
             }
 
-            // Verificar se há dados preenchidos
+            // Verificar se há dados preenchidos para mostrar indicador
             const hasFilledData = storedData.attendance[dateKey] && 
-                (Object.values(storedData.attendance[dateKey]).some(value => value) || 
-                 Object.values(storedData.description[dateKey] || {}).some(value => value));
+                (Object.values(storedData.attendance[dateKey]).some(slot => slot && (slot.startTime || slot.endTime || slot.description)));
 
             let html = `
-                <div class="day-card ${bgColorClass}" data-date="${dateKey}">
+                <div class="day-card" style="background: ${bgColor === 'bg-white' ? 'white' : bgColor.replace('bg-', '').replace('-50', '') + '80'}; border: 2px solid ${borderColor.replace('border-', '').replace('-200', '') + 'aa'};" data-date="${dateKey}">
                     <div class="day-header">
                         <div class="day-info">
                             <span class="weekday">${day.toLocaleDateString('pt-BR', { weekday: 'long' })}</span>
-                            <span class="day-number">${day.getDate()}</span>
+                            <span class="day-number" style="color: ${textColor === 'text-gray-800' ? '#1e293b' : textColor.replace('text-', '').replace('-800', '') + '800'};">
+                                ${day.getDate()}
+                            </span>
                         </div>
                         <div class="day-indicators">
                             ${hasFilledData ? '<div class="filled-indicator"></div>' : ''}
-                            ${(!isSundayDay && !isHolidayDay) ? 
-                                (isExpanded ? 
-                                    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' :
-                                    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>'
-                                ) : ''
+                            ${isExpanded ? 
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' :
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>'
                             }
                         </div>
                     </div>
+                    <div class="expanded-content ${isExpanded ? 'show' : ''}">
             `;
 
-            if (isSundayDay || isHolidayDay) {
+            // Agora todos os dias têm campos de atendimento, incluindo domingos e feriados
+            for (let i = 0; i < 10; i++) {
+                const slot = storedData.attendance[dateKey]?.[i] || {};
+                const startTime = slot.startTime || '';
+                const endTime = slot.endTime || '';
+                const description = slot.description || '';
+                const duration = calculateDuration(startTime, endTime);
+                const isCompleted = storedData.completed[`${dateKey}-${i}`] || false;
+                
                 html += `
-                    <div class="no-attendance">
-                        ${isSundayDay ? 'Domingo - Sem atendimento' : 'Feriado - Sem atendimento'}
+                    <div class="time-slot" data-slot="${i}">
+                        <button class="complete-btn" data-slot="${i}">
+                            ${isCompleted ? 
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>' :
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>'
+                            }
+                        </button>
+                        <div class="time-inputs">
+                            <input type="time" class="time-input start-time" data-slot="${i}" value="${startTime}" placeholder="Início">
+                            <input type="time" class="time-input end-time" data-slot="${i}" value="${endTime}" placeholder="Término">
+                            <input type="text" class="duration-input" value="${duration}" readonly placeholder="Duração">
+                            <input type="text" class="desc-input" value="${description}" maxlength="20" placeholder="Descrição">
+                        </div>
                     </div>
                 `;
-            } else {
-                html += `<div class="expanded-content ${isExpanded ? 'show' : ''}">`;
-                for (let i = 0; i < 10; i++) {
-                    const timeValue = storedData.attendance[dateKey]?.[i] || '';
-                    const descValue = storedData.description[dateKey]?.[i] || '';
-                    const isCompleted = storedData.completed[`${dateKey}-${i}`] || false;
-                    
-                    html += `
-                        <div class="time-slot" data-slot="${i}">
-                            <button class="complete-btn" data-slot="${i}">
-                                ${isCompleted ? 
-                                    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>' :
-                                    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>'
-                                }
-                            </button>
-                            <div class="time-inputs">
-                                <input type="time" class="time-input" value="${timeValue}" placeholder="HH:MM">
-                                <input type="text" class="desc-input" value="${descValue}" maxlength="20" placeholder="Descrição">
-                            </div>
-                        </div>
-                    `;
-                }
-                html += `</div>`;
             }
             
-            html += `</div>`;
+            html += `</div></div>`;
             return html;
         }
 
@@ -423,21 +846,507 @@
             addEventListeners();
         }
 
-        // Adicionar event listeners
-        function addEventListeners() {
-            // Clique nos cards de dia
-            document.querySelectorAll('.day-card').forEach(card => {
-                const dateKey = card.dataset.date;
-                const day = new Date(dateKey);
+        // Renderizar lista de cadastros
+        function renderMonthRegistrations() {
+            const storedData = loadStoredData();
+            const registrationsList = document.getElementById('registrationsList');
+            
+            if (storedData.registrations.length === 0) {
+                registrationsList.innerHTML = '<div class="no-registrations">Nenhum cadastro realizado</div>';
+            } else {
+                let html = '';
+                storedData.registrations.forEach((reg, index) => {
+                    const professionalText = reg.professionalName ? `Profissional: ${reg.professionalName}` : 'Profissional não informado';
+                    const patientText = reg.patientName ? `Paciente: ${reg.patientName}` : 'Paciente não informado';
+                    const responsibleText = reg.responsibleName ? `Responsável: ${reg.responsibleName}` : '';
+                    
+                    html += `
+                        <div class="registration-item">
+                            <div class="registration-item-header">
+                                <div class="registration-names">
+                                    <div class="registration-professional">${professionalText}</div>
+                                    <div class="registration-patient">${patientText}</div>
+                                    ${responsibleText ? `<div class="registration-responsible">${responsibleText}</div>` : ''}
+                                </div>
+                                <button class="delete-btn" data-index="${index}">Excluir</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                registrationsList.innerHTML = html;
                 
-                if (!isSunday(day) && !isHoliday(day)) {
-                    card.addEventListener('click', (e) => {
-                        // Verificar se o clique foi no header (não nos inputs)
-                        if (!e.target.closest('.expanded-content')) {
-                            toggleDayExpansion(dateKey);
+                // Adicionar event listeners para botões de exclusão
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = parseInt(btn.dataset.index);
+                        deleteRegistration(index);
+                    });
+                });
+            }
+        }
+
+        // Renderizar seletor de pacientes
+        function renderPatientSelector() {
+            const storedData = loadStoredData();
+            const patientSelector = document.getElementById('patientSelector');
+            const frequencyPatientSelector = document.getElementById('frequencyPatientSelector');
+            
+            // Limpar opções existentes (exceto a primeira)
+            while (patientSelector.options.length > 1) {
+                patientSelector.remove(1);
+            }
+            while (frequencyPatientSelector.options.length > 1) {
+                frequencyPatientSelector.remove(1);
+            }
+            
+            // Obter pacientes únicos
+            const patients = new Set();
+            storedData.registrations.forEach(reg => {
+                if (reg.patientName) {
+                    patients.add(reg.patientName);
+                }
+            });
+            
+            // Adicionar opções aos dois seletores
+            patients.forEach(patient => {
+                const option1 = document.createElement('option');
+                option1.value = patient;
+                option1.textContent = patient;
+                patientSelector.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = patient;
+                option2.textContent = patient;
+                frequencyPatientSelector.appendChild(option2);
+            });
+            
+            if (patients.size === 0) {
+                document.getElementById('summaryStats').innerHTML = '<div class="no-patients">Nenhum paciente cadastrado</div>';
+            }
+        }
+
+        // Calcular e exibir resumo para paciente selecionado
+        function calculatePatientSummary(patientName) {
+            const hourlyRate = parseFloat(document.getElementById('hourlyRateInput').value) || 0;
+            const storedData = loadStoredData();
+            let totalDays = 0;
+            let totalMinutes = 0;
+            const attendedDays = new Set();
+            
+            // Percorrer todos os dias do mês
+            const days = getDaysInMonth(currentDate);
+            days.forEach(day => {
+                const dateKey = formatDateKey(day);
+                const dayData = storedData.attendance[dateKey];
+                
+                if (dayData) {
+                    // Verificar cada slot do dia
+                    Object.values(dayData).forEach(slot => {
+                        if (slot && slot.description === patientName && slot.startTime && slot.endTime) {
+                            const duration = calculateDuration(slot.startTime, slot.endTime);
+                            if (duration) {
+                                totalMinutes += durationToMinutes(duration);
+                                attendedDays.add(dateKey);
+                            }
                         }
                     });
                 }
+            });
+            
+            totalDays = attendedDays.size;
+            const totalHours = Math.floor(totalMinutes / 60);
+            const remainingMinutes = totalMinutes % 60;
+            const totalHoursDecimal = totalMinutes / 60;
+            const totalValue = hourlyRate * totalHoursDecimal;
+            
+            // Exibir resumo
+            const summaryStats = document.getElementById('summaryStats');
+            if (totalDays === 0) {
+                summaryStats.innerHTML = '<div class="no-patients">Nenhum atendimento encontrado para este paciente</div>';
+            } else {
+                let valueHTML = '';
+                if (hourlyRate > 0) {
+                    valueHTML = `<div class="summary-stat">
+                        <span class="stat-label">Valor total:</span>
+                        <span class="stat-value"> R$ ${totalValue.toFixed(2).replace('.', ',')}</span>
+                    </div>`;
+                }
+                
+                summaryStats.innerHTML = `
+                    <div class="summary-stats">
+                        <div class="summary-stat">
+                            <span class="stat-label">Paciente:</span>
+                            <span class="stat-value"> ${patientName}</span>
+                        </div>
+                        <div class="summary-stat">
+                            <span class="stat-label">Dias atendidos:</span>
+                            <span class="stat-value"> ${totalDays}</span>
+                        </div>
+                        <div class="summary-stat">
+                            <span class="stat-label">Tempo total:</span>
+                            <span class="stat-value"> ${totalHours}h ${remainingMinutes}min</span>
+                        </div>
+                        ${valueHTML}
+                    </div>
+                `;
+            }
+        }
+
+        // Função para converter duração para minutos
+        function durationToMinutes(duration) {
+            if (!duration) return 0;
+            const [hours, minutes] = duration.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        // Função para obter informações do paciente
+        function getPatientInfo(patientName) {
+            const storedData = loadStoredData();
+            const registration = storedData.registrations.find(reg => reg.patientName === patientName);
+            
+            if (registration) {
+                return {
+                    professionalName: registration.professionalName || '',
+                    patientName: registration.patientName || '',
+                    responsibleName: registration.responsibleName || ''
+                };
+            }
+            
+            return {
+                professionalName: '',
+                patientName: patientName,
+                responsibleName: ''
+            };
+        }
+
+        // Função para gerar dados de frequência no formato da lista geral
+        function generateFrequencyDataForTemplate(selectedPatient = null) {
+            const storedData = loadStoredData();
+            const days = getDaysInMonth(currentDate);
+            const frequencyData = [];
+            
+            days.forEach(day => {
+                const dateKey = formatDateKey(day);
+                const dayData = storedData.attendance[dateKey] || {};
+                
+                // Coletar todos os atendimentos do dia
+                for (let i = 0; i < 10; i++) {
+                    const slot = dayData[i] || {};
+                    if (slot.startTime || slot.endTime || slot.description) {
+                        // Se um paciente específico foi selecionado, filtrar apenas os atendimentos dele
+                        if (selectedPatient && slot.description !== selectedPatient) {
+                            continue;
+                        }
+                        frequencyData.push({
+                            day: day.getDate(),
+                            startTime: slot.startTime || '',
+                            endTime: slot.endTime || '',
+                            duration: calculateDuration(slot.startTime || '', slot.endTime || '')
+                        });
+                    }
+                }
+            });
+            
+            return frequencyData;
+        }
+
+        // Função para gerar PDF no formato da lista geral
+        function generatePDF() {
+            const selectedPatient = document.getElementById('frequencyPatientSelector').value;
+            if (!selectedPatient) {
+                alert('Por favor, selecione um paciente para gerar a lista de frequência.');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const patientInfo = getPatientInfo(selectedPatient);
+            const frequencyData = generateFrequencyDataForTemplate(selectedPatient);
+            const monthName = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            
+            // Logo (espaço reservado)
+            doc.setFontSize(16);
+            doc.text('Logo Marca aqui', 105, 20, null, null, 'center');
+            
+            // Título
+            doc.setFontSize(14);
+            doc.text(`Lista de frequência referente ao mês: ${monthName}`, 105, 35, null, null, 'center');
+            
+            // Informações do profissional
+            doc.setFontSize(12);
+            doc.text(`Profissão: ___________________ : Nome ${patientInfo.professionalName}`, 15, 50);
+            
+            // Informações do paciente
+            doc.text(`Paciente: ${patientInfo.patientName}`, 15, 60);
+            
+            // Informações do responsável
+            doc.text(`Responsável: ${patientInfo.responsibleName}`, 15, 70);
+            
+            // Cabeçalho da tabela
+            doc.setFont('helvetica', 'bold');
+            doc.text('DIA', 15, 85);
+            doc.text('HORÁRIO', 50, 85);
+            doc.text('Hora/Sessão', 95, 85);
+            doc.text('ASSINATURA RESPONSÁVEL', 150, 85);
+            
+            // Linha horizontal
+            doc.line(10, 90, 200, 90);
+            
+            // Dados da tabela
+            doc.setFont('helvetica', 'normal');
+            let y = 95;
+            
+            frequencyData.forEach((entry, index) => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 20;
+                }
+                
+                doc.text(entry.day.toString(), 15, y);
+                doc.text(`${entry.startTime} - ${entry.endTime}`, 50, y);
+                doc.text(entry.duration, 95, y);
+                doc.text('', 150, y);
+                
+                // Linha horizontal após cada entrada
+                doc.line(10, y + 5, 200, y + 5);
+                y += 15;
+            });
+            
+            // Se não houver dados, mostrar mensagem
+            if (frequencyData.length === 0) {
+                doc.text('Sem atendimentos registrados', 105, 95, null, null, 'center');
+            }
+            
+            doc.save(`lista_frequencia_${selectedPatient.replace(/\s+/g, '_')}.pdf`);
+        }
+
+        // Função para gerar DOCX no formato da lista geral
+        function generateDOCX() {
+            const selectedPatient = document.getElementById('frequencyPatientSelector').value;
+            if (!selectedPatient) {
+                alert('Por favor, selecione um paciente para gerar a lista de frequência.');
+                return;
+            }
+            
+            const { Document, Paragraph, Table, TableRow, TableCell, WidthType, Packer } = window.docx;
+            
+            const patientInfo = getPatientInfo(selectedPatient);
+            const frequencyData = generateFrequencyDataForTemplate(selectedPatient);
+            const monthName = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            
+            // Criar o documento
+            const doc = new Document({
+                sections: [{
+                    properties: {},
+                    children: [
+                        // Logo (espaço reservado)
+                        new Paragraph({
+                            text: "Logo Marca aqui",
+                            alignment: "center",
+                            spacing: { after: 200 }
+                        }),
+                        
+                        // Título
+                        new Paragraph({
+                            text: `Lista de frequência referente ao mês: ${monthName}`,
+                            alignment: "center",
+                            spacing: { after: 200 }
+                        }),
+                        
+                        // Informações do profissional
+                        new Paragraph({
+                            text: `Profissão: ___________________ : Nome ${patientInfo.professionalName}`,
+                            spacing: { after: 100 }
+                        }),
+                        
+                        // Informações do paciente
+                        new Paragraph({
+                            text: `Paciente: ${patientInfo.patientName}`,
+                            spacing: { after: 100 }
+                        }),
+                        
+                        // Informações do responsável
+                        new Paragraph({
+                            text: `Responsável: ${patientInfo.responsibleName}`,
+                            spacing: { after: 200 }
+                        }),
+                        
+                        // Tabela
+                        new Table({
+                            width: { size: 100, type: WidthType.PERCENTAGE },
+                            rows: [
+                                // Cabeçalho
+                                new TableRow({
+                                    children: [
+                                        new TableCell({ children: [new Paragraph("DIA")] }),
+                                        new TableCell({ children: [new Paragraph("HORÁRIO")] }),
+                                        new TableCell({ children: [new Paragraph("Hora/Sessão")] }),
+                                        new TableCell({ children: [new Paragraph("ASSINATURA RESPONSÁVEL")] })
+                                    ]
+                                }),
+                                // Dados
+                                ...frequencyData.map(entry => 
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({ children: [new Paragraph(entry.day.toString())] }),
+                                            new TableCell({ children: [new Paragraph(`${entry.startTime} - ${entry.endTime}`)] }),
+                                            new TableCell({ children: [new Paragraph(entry.duration)] }),
+                                            new TableCell({ children: [new Paragraph("")] })
+                                        ]
+                                    })
+                                ),
+                                // Mensagem se não houver dados
+                                ...(frequencyData.length === 0 ? [
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({ 
+                                                children: [new Paragraph("Sem atendimentos registrados")],
+                                                columnSpan: 4
+                                            })
+                                        ]
+                                    })
+                                ] : [])
+                            ]
+                        })
+                    ]
+                }]
+            });
+            
+            Packer.toBlob(doc).then(blob => {
+                saveAs(blob, `lista_frequencia_${selectedPatient.replace(/\s+/g, '_')}.docx`);
+            });
+        }
+
+        // Salvar cadastro
+        function saveRegistration() {
+            const professionalName = document.getElementById('professionalName').value.trim();
+            const patientName = document.getElementById('patientName').value.trim();
+            const responsibleName = document.getElementById('responsibleName').value.trim();
+            
+            if (!professionalName && !patientName && !responsibleName) {
+                alert('Pelo menos um campo deve ser preenchido para salvar o cadastro.');
+                return;
+            }
+            
+            const newRegistration = {
+                professionalName: professionalName || null,
+                patientName: patientName || null,
+                responsibleName: responsibleName || null,
+                date: new Date().toISOString()
+            };
+            
+            const storedData = loadStoredData();
+            storedData.registrations.push(newRegistration);
+            saveData('registrations_list', storedData.registrations);
+            
+            // Limpar campos
+            document.getElementById('professionalName').value = '';
+            document.getElementById('patientName').value = '';
+            document.getElementById('responsibleName').value = '';
+            
+            // Atualizar lista de cadastros e seletor
+            renderMonthRegistrations();
+            renderPatientSelector();
+            
+            alert('Cadastro salvo com sucesso!');
+        }
+
+        // Excluir cadastro
+        function deleteRegistration(index) {
+            if (confirm('Tem certeza que deseja excluir este cadastro?')) {
+                const storedData = loadStoredData();
+                storedData.registrations.splice(index, 1);
+                saveData('registrations_list', storedData.registrations);
+                renderMonthRegistrations();
+                renderPatientSelector();
+            }
+        }
+
+        // Alternar expansão do cadastro
+        function toggleRegistrationExpansion() {
+            isRegistrationExpanded = !isRegistrationExpanded;
+            const content = document.getElementById('registrationContent');
+            const chevron = document.getElementById('registrationChevron');
+            
+            if (isRegistrationExpanded) {
+                content.classList.add('show');
+                chevron.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+            } else {
+                content.classList.remove('show');
+                chevron.innerHTML = '<polyline points="6 15 12 9 18 15"></polyline>';
+            }
+        }
+
+        // Alternar expansão dos cadastros
+        function toggleMonthRegistrationsExpansion() {
+            isMonthRegistrationsExpanded = !isMonthRegistrationsExpanded;
+            const content = document.getElementById('monthRegistrationsContent');
+            const chevron = document.getElementById('monthRegistrationsChevron');
+            
+            if (isMonthRegistrationsExpanded) {
+                content.classList.add('show');
+                chevron.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+                renderMonthRegistrations();
+            } else {
+                content.classList.remove('show');
+                chevron.innerHTML = '<polyline points="6 15 12 9 18 15"></polyline>';
+            }
+        }
+
+        // Alternar expansão do resumo
+        function toggleSummaryExpansion() {
+            isSummaryExpanded = !isSummaryExpanded;
+            const content = document.getElementById('summaryContent');
+            const chevron = document.getElementById('summaryChevron');
+            
+            if (isSummaryExpanded) {
+                content.classList.add('show');
+                chevron.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+                renderPatientSelector();
+            } else {
+                content.classList.remove('show');
+                chevron.innerHTML = '<polyline points="6 15 12 9 18 15"></polyline>';
+            }
+        }
+
+        // Alternar expansão da frequência
+        function toggleFrequencyExpansion() {
+            isFrequencyExpanded = !isFrequencyExpanded;
+            const content = document.getElementById('frequencyContent');
+            const chevron = document.getElementById('frequencyChevron');
+            
+            if (isFrequencyExpanded) {
+                content.classList.add('show');
+                chevron.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+                renderPatientSelector();
+            } else {
+                content.classList.remove('show');
+                chevron.innerHTML = '<polyline points="6 15 12 9 18 15"></polyline>';
+            }
+        }
+
+        // Adicionar event listeners
+        function addEventListeners() {
+            // Clique nos cards de dia - TODOS OS DIAS PODEM SER EXPANDIDOS
+            document.querySelectorAll('.day-card').forEach(card => {
+                const dateKey = card.dataset.date;
+                
+                card.addEventListener('click', (e) => {
+                    // Verificar se o clique foi em áreas que não são inputs
+                    const target = e.target;
+                    const isInput = target.classList.contains('time-input') || 
+                                   target.classList.contains('desc-input') ||
+                                   target.closest('.time-input') || 
+                                   target.closest('.desc-input') ||
+                                   target.classList.contains('complete-btn') ||
+                                   target.closest('.complete-btn');
+                    
+                    if (!isInput) {
+                        toggleDayExpansion(dateKey);
+                    }
+                });
             });
             
             // Clique nos botões de conclusão
@@ -451,19 +1360,22 @@
                 });
             });
             
-            // Mudança nos inputs
-            document.querySelectorAll('.time-input, .desc-input').forEach(input => {
+            // Mudança nos inputs de horário
+            document.querySelectorAll('.start-time, .end-time').forEach(input => {
                 input.addEventListener('input', (e) => {
                     e.stopPropagation();
                     const card = e.target.closest('.day-card');
                     const dateKey = card.dataset.date;
-                    const slot = e.target.closest('.time-slot').dataset.slot;
+                    const slotIndex = e.target.dataset.slot;
                     
-                    if (e.target.classList.contains('time-input')) {
-                        updateTime(dateKey, slot, e.target.value);
-                    } else {
-                        updateDescription(dateKey, slot, e.target.value.substring(0, 20));
-                    }
+                    // Atualizar dados de horário
+                    updateAttendanceTime(dateKey, slotIndex, e.target.classList.contains('start-time'), e.target.value);
+                    
+                    // Recalcular e atualizar duração
+                    const startTime = card.querySelector(`.start-time[data-slot="${slotIndex}"]`).value;
+                    const endTime = card.querySelector(`.end-time[data-slot="${slotIndex}"]`).value;
+                    const duration = calculateDuration(startTime, endTime);
+                    card.querySelector(`.duration-input[data-slot="${slotIndex}"]`).value = duration;
                 });
                 
                 // Prevenir propagação de cliques nos inputs
@@ -476,6 +1388,47 @@
                     e.stopPropagation();
                 });
             });
+            
+            // Mudança nos inputs de descrição
+            document.querySelectorAll('.desc-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    e.stopPropagation();
+                    const card = e.target.closest('.day-card');
+                    const dateKey = card.dataset.date;
+                    const slotIndex = e.target.closest('.time-slot').dataset.slot;
+                    updateDescription(dateKey, slotIndex, e.target.value.substring(0, 20));
+                });
+                
+                input.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+                
+                input.addEventListener('focus', (e) => {
+                    e.stopPropagation();
+                });
+            });
+            
+            // Evento de mudança no seletor de pacientes do resumo
+            document.getElementById('patientSelector').addEventListener('change', (e) => {
+                const selectedPatient = e.target.value;
+                if (selectedPatient) {
+                    calculatePatientSummary(selectedPatient);
+                } else {
+                    document.getElementById('summaryStats').innerHTML = '';
+                }
+            });
+            
+            // Evento de mudança no valor da hora
+            document.getElementById('hourlyRateInput').addEventListener('input', (e) => {
+                const selectedPatient = document.getElementById('patientSelector').value;
+                if (selectedPatient) {
+                    calculatePatientSummary(selectedPatient);
+                }
+            });
+            
+            // Eventos para botões de geração
+            document.getElementById('generateDocxBtn').addEventListener('click', generateDOCX);
+            document.getElementById('generatePdfBtn').addEventListener('click', generatePDF);
         }
 
         // Funções de interação
@@ -497,28 +1450,53 @@
             renderDays();
         }
 
-        function updateTime(dateKey, slot, value) {
+        function updateAttendanceTime(dateKey, slotIndex, isStart, value) {
             const storedData = loadStoredData();
             if (!storedData.attendance[dateKey]) {
                 storedData.attendance[dateKey] = {};
             }
-            storedData.attendance[dateKey][slot] = value;
+            if (!storedData.attendance[dateKey][slotIndex]) {
+                storedData.attendance[dateKey][slotIndex] = {};
+            }
+            
+            if (isStart) {
+                storedData.attendance[dateKey][slotIndex].startTime = value;
+            } else {
+                storedData.attendance[dateKey][slotIndex].endTime = value;
+            }
+            
             saveData('attendance_data', storedData.attendance);
         }
 
-        function updateDescription(dateKey, slot, value) {
+        function updateDescription(dateKey, slotIndex, value) {
             const storedData = loadStoredData();
-            if (!storedData.description[dateKey]) {
-                storedData.description[dateKey] = {};
+            if (!storedData.attendance[dateKey]) {
+                storedData.attendance[dateKey] = {};
             }
-            storedData.description[dateKey][slot] = value;
-            saveData('description_data', storedData.description);
+            if (!storedData.attendance[dateKey][slotIndex]) {
+                storedData.attendance[dateKey][slotIndex] = {};
+            }
+            storedData.attendance[dateKey][slotIndex].description = value;
+            saveData('attendance_data', storedData.attendance);
         }
 
         // Inicialização
         function init() {
             updateCurrentDate();
             renderDays();
+            
+            // Event listeners para o cadastro
+            document.getElementById('registrationHeader').addEventListener('click', toggleRegistrationExpansion);
+            document.getElementById('saveRegistrationBtn').addEventListener('click', saveRegistration);
+            
+            // Event listeners para os cadastros
+            document.getElementById('monthRegistrationsHeader').addEventListener('click', toggleMonthRegistrationsExpansion);
+            
+            // Event listeners para o resumo
+            document.getElementById('summaryHeader').addEventListener('click', toggleSummaryExpansion);
+            
+            // Event listeners para a frequência
+            document.getElementById('frequencyHeader').addEventListener('click', toggleFrequencyExpansion);
             
             // Atualizar a cada minuto
             setInterval(() => {
