@@ -177,9 +177,19 @@
         
         .time-slot {
             display: grid;
-            grid-template-columns: auto 120px 120px 100px 1fr;
+            grid-template-columns: 40px auto 120px 120px 100px 1fr;
             gap: 10px;
             align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .slot-number {
+            font-weight: bold;
+            text-align: center;
+            color: #2c3e50;
+            font-size: 1.1em;
         }
         
         .time-input {
@@ -284,6 +294,11 @@
             .time-slot {
                 grid-template-columns: 1fr;
                 gap: 15px;
+            }
+            
+            .slot-number {
+                grid-column: 1 / -1;
+                text-align: left;
             }
             
             .time-input input[type="time"],
@@ -434,20 +449,21 @@
     </div>
 
     <script>
-        // Dados em memória
+        // Data in memory
         let cadastros = [];
         let currentEditId = null;
         let currentDate = new Date();
         let currentYear = currentDate.getFullYear();
         let currentMonth = currentDate.getMonth();
 
-        // Inicialização
+        // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             updateDateTime();
             setInterval(updateDateTime, 1000);
             generateDays();
             loadCadastros();
             updateCadastroSelect();
+            loadDayData();
         });
 
         function updateDateTime() {
@@ -689,8 +705,9 @@
                     const slotDiv = document.createElement('div');
                     slotDiv.className = 'time-slot';
                     slotDiv.innerHTML = `
+                        <div class="slot-number">${slot}</div>
                         <div class="form-group" style="display: flex; align-items: center; justify-content: center;">
-                            <input type="checkbox" id="confirm-${day}-${slot}" onchange="calculateDuration(${day}, ${slot})">
+                            <input type="checkbox" id="confirm-${day}-${slot}" onchange="saveDayData(${day}, ${slot})">
                         </div>
                         <div class="time-input">
                             <label for="start-${day}-${slot}">Início</label>
@@ -706,7 +723,7 @@
                         </div>
                         <div class="form-group">
                             <label for="patient-${day}-${slot}">Paciente</label>
-                            <select id="patient-${day}-${slot}">
+                            <select id="patient-${day}-${slot}" onchange="saveDayData(${day}, ${slot})">
                                 <option value="">Selecione paciente</option>
                             </select>
                         </div>
@@ -760,6 +777,8 @@
             } else {
                 durationInput.value = '';
             }
+            
+            saveDayData(day, slot);
         }
 
         function parseTime(timeString) {
@@ -840,6 +859,54 @@
             document.getElementById('summaryHoras').textContent = `${totalHoras}h ${totalMinutos}m`;
             document.getElementById('summaryValor').textContent = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
             document.getElementById('summaryResults').classList.remove('hidden');
+        }
+
+        // Day data persistence
+        function saveDayData(day, slot) {
+            try {
+                const storageKey = `dayData_${currentYear}_${currentMonth}`;
+                let dayData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                
+                const slotData = {
+                    confirmed: document.getElementById(`confirm-${day}-${slot}`).checked,
+                    startTime: document.getElementById(`start-${day}-${slot}`).value,
+                    endTime: document.getElementById(`end-${day}-${slot}`).value,
+                    duration: document.getElementById(`duration-${day}-${slot}`).value,
+                    patient: document.getElementById(`patient-${day}-${slot}`).value
+                };
+                
+                if (!dayData[day]) {
+                    dayData[day] = {};
+                }
+                dayData[day][slot] = slotData;
+                
+                localStorage.setItem(storageKey, JSON.stringify(dayData));
+            } catch (e) {
+                console.warn('Não foi possível salvar os dados do dia');
+            }
+        }
+        
+        function loadDayData() {
+            try {
+                const storageKey = `dayData_${currentYear}_${currentMonth}`;
+                const dayData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    for (let slot = 1; slot <= 10; slot++) {
+                        if (dayData[day] && dayData[day][slot]) {
+                            const data = dayData[day][slot];
+                            document.getElementById(`confirm-${day}-${slot}`).checked = data.confirmed || false;
+                            document.getElementById(`start-${day}-${slot}`).value = data.startTime || '';
+                            document.getElementById(`end-${day}-${slot}`).value = data.endTime || '';
+                            document.getElementById(`duration-${day}-${slot}`).value = data.duration || '';
+                            document.getElementById(`patient-${day}-${slot}`).value = data.patient || '';
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Não foi possível carregar os dados do dia');
+            }
         }
     </script>
 </body>
