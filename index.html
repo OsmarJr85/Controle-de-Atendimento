@@ -213,14 +213,14 @@
             padding: 8px;
         }
         
-        .summary-grid {
+        .summary-grid, .total-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-top: 20px;
         }
         
-        .summary-item {
+        .summary-item, .total-item {
             text-align: center;
             padding: 20px;
             background: #f8f9fa;
@@ -228,12 +228,12 @@
             border: 2px solid #3498db;
         }
         
-        .summary-item h3 {
+        .summary-item h3, .total-item h3 {
             color: #2c3e50;
             margin-bottom: 10px;
         }
         
-        .summary-item p {
+        .summary-item p, .total-item p {
             font-size: 1.3em;
             font-weight: 700;
             color: #3498db;
@@ -364,6 +364,34 @@
             </div>
         </div>
 
+        <!-- Total do Mês -->
+        <div class="form-section">
+            <div class="section-header" onclick="toggleSection('total')">
+                <h2 class="section-title">Total do Mês</h2>
+                <button class="toggle-btn" id="toggle-total">+</button>
+            </div>
+            <div class="form-content hidden" id="total-content">
+                <div class="total-grid">
+                    <div class="total-item">
+                        <h3>Pacientes</h3>
+                        <p id="totalPacientes">0</p>
+                    </div>
+                    <div class="total-item">
+                        <h3>Atendimentos</h3>
+                        <p id="totalAtendimentos">0</p>
+                    </div>
+                    <div class="total-item">
+                        <h3>Total de Horas</h3>
+                        <p id="totalHorasMes">0h 0m</p>
+                    </div>
+                    <div class="total-item">
+                        <h3>Valor a Receber</h3>
+                        <p id="totalValor">R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Resumo do Mês -->
         <div class="form-section">
             <div class="section-header" onclick="toggleSection('resumo')">
@@ -464,6 +492,7 @@
             loadCadastros();
             updateCadastroSelect();
             loadDayData();
+            calculateTotalMonth(); // Calculate totals on load
         });
 
         function updateDateTime() {
@@ -529,6 +558,7 @@
             clearCadastroForm();
             updatePacienteOptions();
             updatePacienteOptionsInSlots();
+            calculateTotalMonth(); // Recalculate totals after save
         }
 
         function clearCadastroForm() {
@@ -624,6 +654,7 @@
                 currentEditId = null;
                 updatePacienteOptions();
                 updatePacienteOptionsInSlots();
+                calculateTotalMonth(); // Recalculate totals after edit
             }
         }
 
@@ -652,6 +683,7 @@
                 currentEditId = null;
                 updatePacienteOptions();
                 updatePacienteOptionsInSlots();
+                calculateTotalMonth(); // Recalculate totals after delete
             }
         }
 
@@ -861,6 +893,47 @@
             document.getElementById('summaryResults').classList.remove('hidden');
         }
 
+        // Total do Mês calculation
+        function calculateTotalMonth() {
+            let totalAtendimentos = 0;
+            let totalMinutes = 0;
+            const pacientesSet = new Set();
+            
+            // Verificar todos os slots de todos os dias
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            for (let day = 1; day <= daysInMonth; day++) {
+                for (let slot = 1; slot <= 10; slot++) {
+                    const confirmCheckbox = document.getElementById(`confirm-${day}-${slot}`);
+                    const patientSelect = document.getElementById(`patient-${day}-${slot}`);
+                    const durationInput = document.getElementById(`duration-${day}-${slot}`);
+                    
+                    if (confirmCheckbox && confirmCheckbox.checked && 
+                        patientSelect && patientSelect.value && 
+                        durationInput && durationInput.value) {
+                        
+                        totalAtendimentos++;
+                        pacientesSet.add(patientSelect.value);
+                        const [hours, minutes] = durationInput.value.split(':').map(Number);
+                        totalMinutes += hours * 60 + minutes;
+                    }
+                }
+            }
+            
+            const totalPacientes = pacientesSet.size;
+            const totalHoras = Math.floor(totalMinutes / 60);
+            const totalMinutos = totalMinutes % 60;
+            
+            // Get average hourly rate from all cadastros or use a default
+            const valorHora = parseFloat(document.getElementById('valorHora').value) || 50; // Default R$50/hour
+            const totalValor = (totalMinutes / 60) * valorHora;
+            
+            // Update total display
+            document.getElementById('totalPacientes').textContent = totalPacientes;
+            document.getElementById('totalAtendimentos').textContent = totalAtendimentos;
+            document.getElementById('totalHorasMes').textContent = `${totalHoras}h ${totalMinutos}m`;
+            document.getElementById('totalValor').textContent = `R$ ${totalValor.toFixed(2).replace('.', ',')}`;
+        }
+
         // Day data persistence
         function saveDayData(day, slot) {
             try {
@@ -881,6 +954,7 @@
                 dayData[day][slot] = slotData;
                 
                 localStorage.setItem(storageKey, JSON.stringify(dayData));
+                calculateTotalMonth(); // Recalculate totals after saving day data
             } catch (e) {
                 console.warn('Não foi possível salvar os dados do dia');
             }
